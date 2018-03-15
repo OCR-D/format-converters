@@ -9,6 +9,14 @@ see alternative https://wiki.tei-c.org/index.php/HOCR2TEI
 13.03.2018 Matthias Boenig correct and expand the origin XSL-Stylesheet
 -->
 
+<xsl:variable name="document-uri" select="document-uri(.)"/>
+
+<xsl:variable name="filename1" select="(tokenize($document-uri,'/'))[last()]"/>
+
+<xsl:variable name="without_extension" select="tokenize($filename1, '\.')[1]"/>
+
+
+
 <xsl:variable name="filename">
 <xsl:value-of select="substring-before(base-uri(), '.')"/>
 </xsl:variable>
@@ -51,8 +59,9 @@ see alternative https://wiki.tei-c.org/index.php/HOCR2TEI
 </xsl:element>
 <xsl:for-each select="//h:div[starts-with(@title, 'bbox')]">
 <xsl:element name="zone">
-<xsl:attribute name="xml:id"
-select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
+<xsl:attribute name="xml:id">
+<xsl:value-of select="$without_extension"/>_<xsl:value-of select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
+</xsl:attribute>
 <xsl:attribute name="ulx" select="tokenize(@title, ' ')[2]"/>
 <xsl:attribute name="uly" select="tokenize(@title, ' ')[3]"/>
 <xsl:attribute name="lrx" select="tokenize(@title, ' ')[4]"/>
@@ -61,8 +70,20 @@ select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
 </xsl:for-each>
 <xsl:for-each select="//h:p[starts-with(@title, 'bbox')]">
 <xsl:element name="zone">
-<xsl:attribute name="xml:id"
-select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
+<xsl:attribute name="xml:id">
+<xsl:value-of select="$without_extension"/>_<xsl:value-of select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
+</xsl:attribute>
+<xsl:attribute name="ulx" select="tokenize(@title, ' ')[2]"/>
+<xsl:attribute name="uly" select="tokenize(@title, ' ')[3]"/>
+<xsl:attribute name="lrx" select="tokenize(@title, ' ')[4]"/>
+<xsl:attribute name="lry" select="tokenize(@title, ' ')[5]"/>
+</xsl:element>
+</xsl:for-each>
+<xsl:for-each select="//h:span[starts-with(@title, 'bbox')]">
+<xsl:element name="zone">
+<xsl:attribute name="xml:id">
+<xsl:value-of select="$without_extension"/>_<xsl:value-of select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
+</xsl:attribute>
 <xsl:attribute name="ulx" select="tokenize(@title, ' ')[2]"/>
 <xsl:attribute name="uly" select="tokenize(@title, ' ')[3]"/>
 <xsl:attribute name="lrx" select="tokenize(@title, ' ')[4]"/>

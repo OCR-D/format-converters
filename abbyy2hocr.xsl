@@ -30,6 +30,12 @@ see alternative https://gist.github.com/tfmorris/5977784
 <xsl:param name="ImageFile_format" required="yes"></xsl:param>
 <xsl:param name="CSS_Stylesheet" required="yes"></xsl:param>
     
+<xsl:variable name="document-uri" select="document-uri(.)"/>
+
+<xsl:variable name="filename" select="(tokenize($document-uri,'/'))[last()]"/>
+
+<xsl:variable name="without_extension" select="tokenize($filename, '\.')[1]"/>
+
     
     
 <xsl:template match="ns0:document|ns1:document|ns2:document|ns3:document">
