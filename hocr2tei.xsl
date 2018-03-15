@@ -238,8 +238,7 @@ see alternative https://wiki.tei-c.org/index.php/HOCR2TEI
 
 <xsl:template name="at-facs">
 <xsl:if test="starts-with(@title, 'bbox')">
-<xsl:attribute name="facs">
-<xsl:value-of select="concat('#', @class, '_', count(preceding::*[@class = current()/@class]))"/>
+<xsl:attribute name="facs">#<xsl:value-of select="$without_extension"/>_<xsl:value-of select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
 </xsl:attribute>
 </xsl:if>
 </xsl:template>
