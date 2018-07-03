@@ -15,11 +15,12 @@ see alternative https://wiki.tei-c.org/index.php/HOCR2TEI
 
 <xsl:variable name="without_extension" select="tokenize($filename1, '\.')[1]"/>
 
-
-
 <xsl:variable name="filename">
 <xsl:value-of select="substring-before(base-uri(), '.')"/>
 </xsl:variable>
+
+
+<xsl:variable name="image_file"></xsl:variable>
 
 
 <xsl:template match="h:html">
@@ -205,7 +206,7 @@ see alternative https://wiki.tei-c.org/index.php/HOCR2TEI
 </xsl:template>
 
 
-<xsl:template match="h:span[@class = 'ocr_word']">
+<xsl:template match="h:span[@class = 'ocr_word' or @class = 'ocrx_word']">
 <xsl:choose>
 <xsl:when test=". = ('-', '.', ',', ':', ';', '?,', '!', '·', '—')">
 <xsl:element name="pc">
@@ -217,7 +218,7 @@ see alternative https://wiki.tei-c.org/index.php/HOCR2TEI
 <xsl:element name="w">
 <xsl:call-template name="at-facs"/>
 <xsl:apply-templates/>
-</xsl:element>
+</xsl:element><xsl:text> </xsl:text>
 </xsl:otherwise>
 </xsl:choose>
 </xsl:template>
