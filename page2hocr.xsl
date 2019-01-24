@@ -4,8 +4,9 @@
 	xmlns="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	xmlns:p="http://schema.primaresearch.org/PAGE/gts/pagecontent/2016-07-15">
-	<!--xmlns:p="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15"-->
+	xmlns:p="http://schema.primaresearch.org/PAGE/gts/pagecontent/2016-07-15"
+	>
+	
 	<xsl:output method="html" encoding="utf-8" standalone="yes" indent="yes"/>
 
 
@@ -50,6 +51,14 @@
 							</xsl:element>
 						</xsl:element>
 					</xsl:for-each>
+					<xsl:for-each select="p:Page/p:GraphicRegion">
+						<xsl:element name="div">
+							<xsl:attribute name="class">ocr_carea</xsl:attribute>
+							<xsl:attribute name="title">
+								<xsl:call-template name="bbox_or_poly"/>
+							</xsl:attribute>
+						</xsl:element>
+					</xsl:for-each>
 				</xsl:element>
 			</body>
 		</html>
@@ -57,10 +66,63 @@
 
 	<xsl:template name="bbox_or_poly">
 		<xsl:variable name="Coords" select="p:Coords/@points"/>
-		<xsl:variable name="points" select="count(tokenize($Coords,' '))"/>
+		<xsl:variable name="points" select="tokenize($Coords,' ')"/>
+		
+		<xsl:variable name="xmin">
+			<xsl:for-each select="$points">
+				<xsl:sort select="substring-before(., ',')" data-type="number"/>
+				<xsl:choose>
+				<xsl:when test="substring-before(., ',')">
+					<xsl:if test="position() = 1">
+						<xsl:value-of select="substring-before(., ',')"/>
+					</xsl:if>
+				  </xsl:when>
+				</xsl:choose>
+			</xsl:for-each>
+		</xsl:variable>
+		
+		<xsl:variable name="xmax">
+			<xsl:for-each select="$points">
+				<xsl:sort select="substring-before(., ',')" order="descending" data-type="number"/>
+				<xsl:choose>
+					<xsl:when test="substring-before(., ',')">
+						<xsl:if test="position() = 1">
+							<xsl:value-of select="substring-before(., ',')"/>
+						</xsl:if>
+					</xsl:when>
+				</xsl:choose>
+			</xsl:for-each>
+		</xsl:variable>
+		
+		<xsl:variable name="ymin">
+			<xsl:for-each select="$points">
+				<xsl:sort select="substring-after(., ',')" data-type="number"/>
+				<xsl:choose>
+					<xsl:when test="substring-after(., ',')">
+						<xsl:if test="position() = 1">
+							<xsl:value-of select="substring-after(., ',')"/>
+						</xsl:if>
+					</xsl:when>
+				</xsl:choose>
+			</xsl:for-each>
+		</xsl:variable>
+		
+		<xsl:variable name="ymax">
+			<xsl:for-each select="$points">
+				<xsl:sort select="substring-after(., ',')" order="descending" data-type="number"/>
+				<xsl:choose>
+					<xsl:when test="substring-after(., ',')">
+						<xsl:if test="position() = 1">
+							<xsl:value-of select="substring-after(., ',')"/>
+						</xsl:if>
+					</xsl:when>
+				</xsl:choose>
+			</xsl:for-each>
+		</xsl:variable>
 		<xsl:choose>
-			<xsl:when test="$points > 4">poly <xsl:value-of select="replace($Coords, ',', ' ')"/></xsl:when>
-			<xsl:otherwise>bbox <xsl:value-of select="replace($Coords, '([0-9]+),([0-9]+)\s([0-9]+),([0-9]+)\s([0-9]+),([0-9]+)\s([0-9]+),([0-9]+)', '$1 $2 $5 $6')"/></xsl:otherwise>
+			<!--<xsl:when test="count($points) > 4">bbox <xsl:value-of select="$xmin"/><xsl:text> </xsl:text><xsl:value-of select="$ymin"/><xsl:text> </xsl:text><xsl:value-of select="$xmax"/><xsl:text> </xsl:text><xsl:value-of select="$ymax"/>; poly <xsl:value-of select="replace($Coords, ',', ' ')"/></xsl:when>-->
+			<xsl:when test="count($points) > 4">bbox <xsl:value-of select="$xmin"/><xsl:text> </xsl:text><xsl:value-of select="$ymin"/><xsl:text> </xsl:text><xsl:value-of select="$xmax"/><xsl:text> </xsl:text><xsl:value-of select="$ymax"/></xsl:when>
+			<xsl:otherwise>bbox <xsl:value-of select="$xmin"/><xsl:text> </xsl:text><xsl:value-of select="$ymin"/><xsl:text> </xsl:text><xsl:value-of select="$xmax"/><xsl:text> </xsl:text><xsl:value-of select="$ymax"/></xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
 		
