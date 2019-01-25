@@ -45,6 +45,15 @@
 										<xsl:attribute name="title">
 											<xsl:call-template name="bbox_or_poly"/>
 										</xsl:attribute>
+										<xsl:for-each select="p:Word">
+											<xsl:element name="span">
+												<xsl:attribute name="class">ocrx_word</xsl:attribute>
+												<xsl:attribute name="title">
+													<xsl:call-template name="bbox_or_poly"/>
+												</xsl:attribute>
+												<xsl:value-of select="p:TextEquiv/p:Unicode"/>
+											</xsl:element>
+										</xsl:for-each>
 										<xsl:value-of select="p:TextEquiv/p:Unicode"/>
 									</xsl:element>
 								</xsl:for-each>
@@ -71,52 +80,36 @@
 		<xsl:variable name="xmin">
 			<xsl:for-each select="$points">
 				<xsl:sort select="substring-before(., ',')" data-type="number"/>
-				<xsl:choose>
-				<xsl:when test="substring-before(., ',')">
-					<xsl:if test="position() = 1">
+					<xsl:if test="substring-before(., ',') and position() = 1">
 						<xsl:value-of select="substring-before(., ',')"/>
 					</xsl:if>
-				  </xsl:when>
-				</xsl:choose>
 			</xsl:for-each>
 		</xsl:variable>
 		
 		<xsl:variable name="xmax">
 			<xsl:for-each select="$points">
 				<xsl:sort select="substring-before(., ',')" order="descending" data-type="number"/>
-				<xsl:choose>
-					<xsl:when test="substring-before(., ',')">
-						<xsl:if test="position() = 1">
-							<xsl:value-of select="substring-before(., ',')"/>
-						</xsl:if>
-					</xsl:when>
-				</xsl:choose>
+					<xsl:if test="substring-before(., ',') and position() = 1">
+						<xsl:value-of select="substring-before(., ',')"/>
+					</xsl:if>
 			</xsl:for-each>
 		</xsl:variable>
 		
 		<xsl:variable name="ymin">
 			<xsl:for-each select="$points">
 				<xsl:sort select="substring-after(., ',')" data-type="number"/>
-				<xsl:choose>
-					<xsl:when test="substring-after(., ',')">
-						<xsl:if test="position() = 1">
+						<xsl:if test="substring-after(., ',') and position() = 1">
 							<xsl:value-of select="substring-after(., ',')"/>
 						</xsl:if>
-					</xsl:when>
-				</xsl:choose>
 			</xsl:for-each>
 		</xsl:variable>
 		
 		<xsl:variable name="ymax">
 			<xsl:for-each select="$points">
 				<xsl:sort select="substring-after(., ',')" order="descending" data-type="number"/>
-				<xsl:choose>
-					<xsl:when test="substring-after(., ',')">
-						<xsl:if test="position() = 1">
+						<xsl:if test="substring-after(., ',') and position() = 1">
 							<xsl:value-of select="substring-after(., ',')"/>
 						</xsl:if>
-					</xsl:when>
-				</xsl:choose>
 			</xsl:for-each>
 		</xsl:variable>
 		<xsl:choose>
