@@ -39,7 +39,9 @@
 								<xsl:attribute name="title">
 									<xsl:call-template name="bbox_or_poly"/>
 								</xsl:attribute>
-								<xsl:for-each select="p:TextLine">
+								<xsl:choose>
+									<xsl:when test="p:TextLine">
+									<xsl:for-each select="p:TextLine">
 									<xsl:element name="span">
 										<xsl:attribute name="class">ocr_line</xsl:attribute>
 										<xsl:attribute name="title">
@@ -56,7 +58,12 @@
 										</xsl:for-each>
 										<xsl:value-of select="p:TextEquiv/p:Unicode"/>
 									</xsl:element>
-								</xsl:for-each>
+									</xsl:for-each>
+									</xsl:when>
+									<xsl:otherwise>
+										<xsl:value-of select="p:TextEquiv/p:Unicode"/>
+									</xsl:otherwise>
+								</xsl:choose>
 							</xsl:element>
 						</xsl:element>
 					</xsl:for-each>
