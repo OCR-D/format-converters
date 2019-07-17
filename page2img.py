@@ -11,7 +11,7 @@ from lxml import etree
 from PIL import Image
 
 ns = {
-     'pc': 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2017-07-15',
+     'pc': 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2018-07-15',
      'xlink' : "http://www.w3.org/1999/xlink",
 }
 PC = "{%s}" % ns['pc']
@@ -48,7 +48,7 @@ def cli(page,out_dir,level):
     #
     # iterate over all structs
     #
-    for struct in page_elem.xpath(".//pc:Text%s" % level.capitalize(), namespaces=ns):
+    for struct in page_elem.xpath(".//pc:Text%s|.//pc:Image%s" % (level.capitalize(), level.capitalize()), namespaces=ns):
 
         #
         # generate PIL crop schema from struct points
@@ -70,7 +70,7 @@ def cli(page,out_dir,level):
         #
         # generate and save struct image
         pil_image_struct = pil_image.crop((min_x, min_y, max_x, max_y))
-        pil_image_struct.save("%s/%s.png" % (out_dir,struct.get("id")), dpi=(300,300))
+        pil_image_struct.save("%s/%s_%s.png" % (out_dir,os.path.basename(src_img),struct.get("id")), dpi=(300,300))
 
 if __name__ == '__main__':
     cli()
