@@ -26,9 +26,9 @@ see alternative https://gist.github.com/tfmorris/5977784
 
    
     
-<xsl:param name="ImageFile_Path_and_ImageFile" required="yes"></xsl:param>
-<xsl:param name="ImageFile_format" required="yes"></xsl:param>
-<xsl:param name="CSS_Stylesheet" required="yes"></xsl:param>
+<xsl:param name="ImageFile_Path_and_ImageFile"></xsl:param>
+<xsl:param name="ImageFile_format"></xsl:param>
+<xsl:param name="CSS_Stylesheet"></xsl:param>
     
 <xsl:variable name="document-uri" select="document-uri(.)"/>
 
@@ -43,7 +43,9 @@ see alternative https://gist.github.com/tfmorris/5977784
 </xsl:text>
         <html>
             <head>
-                <link rel="stylesheet"><xsl:attribute name="href"><xsl:value-of select="$CSS_Stylesheet"/></xsl:attribute></link>
+                <xsl:if test="normalize-space($ImageFile_Path_and_ImageFile) != ''">
+                    <link rel="stylesheet"><xsl:attribute name="href"><xsl:value-of select="$CSS_Stylesheet"/></xsl:attribute></link>
+                </xsl:if>
                 <title>OCR Output</title>
             <meta name="description"><xsl:attribute name="content">OCR Output produced by <xsl:value-of select="./@producer"/></xsl:attribute></meta>
             </head>
@@ -62,7 +64,9 @@ see alternative https://gist.github.com/tfmorris/5977784
                 <xsl:value-of select="@width" />
                 <xsl:text> </xsl:text>
                 <xsl:value-of select="@height" />
-                <xsl:text> image </xsl:text><xsl:text> </xsl:text><xsl:value-of select="$ImageFile_Path_and_ImageFile"/>.<xsl:value-of select="$ImageFile_format"/><xsl:text></xsl:text>
+                <xsl:if test="normalize-space($ImageFile_Path_and_ImageFile) != ''">
+                   <xsl:text> image </xsl:text><xsl:text> </xsl:text><xsl:value-of select="$ImageFile_Path_and_ImageFile"/>.<xsl:value-of select="$ImageFile_format"/><xsl:text></xsl:text>
+                </xsl:if>
             </xsl:attribute>
         <xsl:apply-templates select="ns0:block|ns1:block|ns2:block|ns3:block" />
         </div>
