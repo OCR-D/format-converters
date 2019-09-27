@@ -23,7 +23,7 @@ colormap = {
         PC + 'NoiseRegion' : [128, 0, 0],
         PC + 'TextRegion' : [0, 128, 0],
         PC + 'ImageRegion' : [0, 0, 128],
-        PC + 'GraphicsRegion' : [128, 128, 0],
+        PC + 'GraphicRegion' : [128, 128, 0],
         PC + 'SeparatorRegion' : [0, 128, 128],
         PC + 'MathRegion' : [128, 0, 128],
         PC + 'TableRegion' : [128, 128, 128],
