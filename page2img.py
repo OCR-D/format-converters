@@ -84,7 +84,7 @@ def cli(page,out_dir,level,font):
         #
         # draw regions into page
         if level == 'page':
-            draw.polygon(xys, (colormap[struct.tag][0], colormap[struct.tag][1], colormap[struct.tag][2], 50))
+            draw.polygon(xys, (colormap[struct.tag][0], colormap[struct.tag][1], colormap[struct.tag][2], 50), outline='black')
             draw.text(xys[0], "%s-%s-%s" % (re.sub("{[^}]*}", "", struct.tag), struct.get("type", default="None"), struct.get("custom", default="None")), (colormap[struct.tag][0], colormap[struct.tag][1], colormap[struct.tag][2], 255), font=font)
         #
         # generate PIL crop schema from struct points
