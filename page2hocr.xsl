@@ -12,6 +12,7 @@
 	xmlns:p5="http://schema.primaresearch.org/PAGE/gts/pagecontent/2016-07-15"
 	xmlns:p6="http://schema.primaresearch.org/PAGE/gts/pagecontent/2017-07-15"
 	xmlns:p7="http://schema.primaresearch.org/PAGE/gts/pagecontent/2018-07-15"
+	xmlns:p8="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15"
 	xmlns="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
 	exclude-result-prefixes="#all"
 	version="2.0">
