@@ -5,24 +5,45 @@ import os
 import sys
 import click
 import validators
+import re
 
 from urllib.request import urlopen
 from lxml import etree
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 ns = {
-     'pc': 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2018-07-15',
+     'pc': 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15',
      'xlink' : "http://www.w3.org/1999/xlink",
-}
+     're' : "http://exslt.org/regular-expressions",
+     }
 PC = "{%s}" % ns['pc']
 XLINK = "{%s}" % ns['xlink']
+
+colormap = {
+        PC + 'NoiseRegion' : [128, 0, 0],
+        PC + 'TextRegion' : [0, 128, 0],
+        PC + 'ImageRegion' : [0, 0, 128],
+        PC + 'GraphicRegion' : [128, 128, 0],
+        PC + 'SeparatorRegion' : [0, 128, 128],
+        PC + 'MathRegion' : [128, 0, 128],
+        PC + 'TableRegion' : [128, 128, 128],
+        }
 
 @click.command()
 @click.argument('page', type=click.File('rb'))
 @click.option('-o', '--out-dir', type=click.Path(exists=True), default=".", help="Existing directory for storing the extracted image files (default: PWD)")
-@click.option('-l', '--level', type=click.Choice(['line','region']), default='line', help="Structural level to perform the image extraction on (default: 'line')")
-def cli(page,out_dir,level):
+@click.option('-l', '--level', type=click.Choice(['line','region','page']), default='line', help="Structural level to perform the image extraction on (default: 'line')")
+@click.option('-f', '--font', type=click.Path(dir_okay=False), help="Truetype font file for label output")
+def cli(page,out_dir,level,font):
     """ PAGE: Input PAGE XML """
+
+    #
+    # read font file
+    #
+    try:
+        font = ImageFont.truetype(font, size=24)
+    except:
+        font = ImageFont.load_default()
 
     #
     # read input xml
@@ -48,29 +69,49 @@ def cli(page,out_dir,level):
     #
     # iterate over all structs
     #
-    for struct in page_elem.xpath(".//pc:Text%s|.//pc:Image%s" % (level.capitalize(), level.capitalize()), namespaces=ns):
+    if level == "line":
+        xpath = ".//pc:TextLine"
+    else:
+        xpath = ".//*[re:test(local-name(), '[A-Z][a-z]*Region')]"
+        #
+        # create drawing area for page
+        if level == 'page':
+            draw = ImageDraw.Draw(pil_image, 'RGBA')
+    for struct in page_elem.xpath(xpath, namespaces=ns):
 
+        xys = [tuple([int(p) for p in pair.split(',')]) for pair in struct.find("./" + PC + "Coords").get("points").split(' ')]
+
+        #
+        # draw regions into page
+        if level == 'page':
+            draw.polygon(xys, (colormap[struct.tag][0], colormap[struct.tag][1], colormap[struct.tag][2], 50), outline='black')
+            draw.text(xys[0], "%s-%s-%s" % (re.sub("{[^}]*}", "", struct.tag), struct.get("type", default="None"), struct.get("custom", default="None")), (colormap[struct.tag][0], colormap[struct.tag][1], colormap[struct.tag][2], 255), font=font)
         #
         # generate PIL crop schema from struct points
-        xys = [[int(p) for p in pair.split(',')] for pair in struct.find("./" + PC + "Coords").get("points").split(' ')]
-        min_x = pil_image.width
-        min_y = pil_image.height
-        max_x = 0
-        max_y = 0
-        for xy in xys:
-            if xy[0] < min_x:
-                min_x = xy[0]
-            if xy[0] > max_x:
-                max_x = xy[0]
-            if xy[1] < min_y:
-                min_y = xy[1]
-            if xy[1] > max_y:
-                max_y = xy[1]
+        else:
+            min_x = pil_image.width
+            min_y = pil_image.height
+            max_x = 0
+            max_y = 0
+            for xy in xys:
+                if xy[0] < min_x:
+                    min_x = xy[0]
+                if xy[0] > max_x:
+                    max_x = xy[0]
+                if xy[1] < min_y:
+                    min_y = xy[1]
+                if xy[1] > max_y:
+                    max_y = xy[1]
 
-        #
-        # generate and save struct image
-        pil_image_struct = pil_image.crop((min_x, min_y, max_x, max_y))
-        pil_image_struct.save("%s/%s_%s.png" % (out_dir,os.path.basename(src_img),struct.get("id")), dpi=(300,300))
+            #
+            # generate and save struct image
+            pil_image_struct = pil_image.crop((min_x, min_y, max_x, max_y))
+            pil_image_struct.save("%s/%s_%s.png" % (out_dir,os.path.basename(src_img),struct.get("id")), dpi=(300,300))
+    #
+    # delete draw area and save page
+    if level == 'page':
+        del draw
+        pil_image.save("%s/%s_hl.png" % (out_dir,os.path.basename(src_img)), dpi=(300,300))
 
 if __name__ == '__main__':
     cli()
