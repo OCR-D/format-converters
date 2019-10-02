@@ -20,9 +20,12 @@ see alternative https://gist.github.com/tfmorris/5977784
 <xsl:output method="html" encoding="UTF-8"/>
 <xsl:strip-space elements="*"/>
 
-<xsl:param name="ImageFile_Path_and_ImageFile" required="yes"></xsl:param>
-<xsl:param name="ImageFile_format" required="yes"></xsl:param>
-<xsl:param name="CSS_Stylesheet" required="yes"></xsl:param>
+
+<xsl:param name="ImageFile_Path_and_ImageFile"></xsl:param>
+<xsl:param name="ImageFile_format"></xsl:param>
+<xsl:param name="CSS_Stylesheet"></xsl:param>
+    
+<xsl:variable name="document-uri" select="document-uri(.)"/>
 
 <xsl:variable name="document-uri" select="document-uri(.)"/>
 <xsl:variable name="filename" select="(tokenize($document-uri,'/'))[last()]"/>
@@ -30,18 +33,35 @@ see alternative https://gist.github.com/tfmorris/5977784
 
 <xsl:template match="ns0:document|ns1:document|ns2:document|ns3:document">
   <xsl:text disable-output-escaping='yes'>&lt;!DOCTYPE HTML&gt;
-  </xsl:text>
-<html>
-  <head>
-    <link rel="stylesheet"><xsl:attribute name="href"><xsl:value-of select="$CSS_Stylesheet"/></xsl:attribute></link>
-    <title>OCR Output</title>
-    <meta name="description"><xsl:attribute name="content">OCR Output produced by <xsl:value-of select="./@producer"/></xsl:attribute></meta>
-  </head>
-  <body>
-    <xsl:apply-templates select="//ns0:page|//ns1:page|//ns2:page|//ns3:page" />
-  </body>
-</html>
-  </xsl:template>
+</xsl:text>
+  <html>
+    <head>
+      <xsl:if test="normalize-space($ImageFile_Path_and_ImageFile) != ''">
+        <link rel="stylesheet"><xsl:attribute name="href"><xsl:value-of select="$CSS_Stylesheet"/></xsl:attribute></link>
+      </xsl:if>
+      <title>OCR Output</title>
+      <meta name="description"><xsl:attribute name="content">OCR Output produced by <xsl:value-of select="./@producer"/></xsl:attribute></meta>
+    </head>
+    <body>
+      <xsl:apply-templates select="//ns0:page|//ns1:page|//ns2:page|//ns3:page" />
+    </body>
+  </html>
+</xsl:template>
+
+<xsl:template match="ns0:page|ns1:page|ns2:page|ns3:page">
+  <div class="ocr_page">
+    <xsl:attribute name="title">
+      <xsl:text>bbox 0 0 </xsl:text>
+      <xsl:value-of select="@width" />
+      <xsl:text> </xsl:text>
+      <xsl:value-of select="@height" />
+      <xsl:if test="normalize-space($ImageFile_Path_and_ImageFile) != ''">
+        <xsl:text> image </xsl:text><xsl:text> </xsl:text><xsl:value-of select="$ImageFile_Path_and_ImageFile"/>.<xsl:value-of select="$ImageFile_format"/><xsl:text></xsl:text>
+      </xsl:if>
+    </xsl:attribute>
+     <xsl:apply-templates select="ns0:block|ns1:block|ns2:block|ns3:block" />
+  </div>
+</xsl:template>
 
 <xsl:template match="ns0:page|ns1:page|ns2:page|ns3:page">
   <div class="ocr_page">

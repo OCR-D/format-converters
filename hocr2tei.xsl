@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0"
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0"
   xmlns="http://www.tei-c.org/ns/1.0" xmlns:t="http://www.tei-c.org/ns/1.0"
   xmlns:h="http://www.w3.org/1999/xhtml">
 <xsl:output method="xml" encoding="UTF-8"/>
@@ -13,9 +13,10 @@ see alternative https://wiki.tei-c.org/index.php/HOCR2TEI
 <xsl:variable name="filename1" select="(tokenize($document-uri,'/'))[last()]"/>
 <xsl:variable name="without_extension" select="tokenize($filename1, '\.')[1]"/>
 
-<xsl:variable name="filename">
-  <xsl:value-of select="substring-before(base-uri(), '.')"/>
-</xsl:variable>
+<xsl:variable name="filename" select="substring-before(base-uri(), '.')"/>
+
+<!-- following param value can be used "teseract" -->
+<xsl:param name="prog"/>
 
 <xsl:template match="h:html">
   <xsl:processing-instruction name="xml-model">
@@ -45,44 +46,103 @@ see alternative https://wiki.tei-c.org/index.php/HOCR2TEI
       </xsl:element>
     </xsl:element>
   </xsl:element>
+
   <xsl:element name="facsimile">
     <xsl:for-each select="//h:div[@class = 'ocr_page']">
       <xsl:element name="surface">
-        <xsl:element name="graphic">
-          <xsl:attribute name="url" select="substring-after(./@title, 'image ')"/>
-        </xsl:element>
+        <xsl:choose>
+          <xsl:when test="$prog = 'teseract'">
+            <xsl:analyze-string select="./@title" regex='([0-9a-zA-Z/_:\.\-]*.tif)'>
+              <xsl:matching-substring>
+                <xsl:element name="graphic">
+                  <xsl:attribute name="url" select="regex-group(1)"/>
+                </xsl:element>
+              </xsl:matching-substring>
+            </xsl:analyze-string>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:element name="graphic">
+              <xsl:attribute name="url" select="substring-after(./@title, 'image ')"/>
+            </xsl:element>
+          </xsl:otherwise>
+        </xsl:choose>
         <xsl:for-each select="//h:div[starts-with(@title, 'bbox')]">
-          <xsl:element name="zone">
-            <xsl:attribute name="xml:id">
-              <xsl:value-of select="$without_extension"/>_<xsl:value-of select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
-            </xsl:attribute>
-            <xsl:attribute name="ulx" select="tokenize(@title, ' ')[2]"/>
-            <xsl:attribute name="uly" select="tokenize(@title, ' ')[3]"/>
-            <xsl:attribute name="lrx" select="tokenize(@title, ' ')[4]"/>
-            <xsl:attribute name="lry" select="tokenize(@title, ' ')[5]"/>
-          </xsl:element>
+          <xsl:choose>
+            <xsl:when test="@title[matches(.,';')]">
+              <xsl:element name="zone">
+                <xsl:attribute name="xml:id">
+                  image_<xsl:value-of select="$without_extension"/>_<xsl:value-of select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
+                </xsl:attribute>
+                <xsl:attribute name="ulx" select="tokenize(tokenize(@title, ';')[1])[2]"/>
+                <xsl:attribute name="uly" select="tokenize(tokenize(@title, ';')[1])[3]"/>
+                <xsl:attribute name="lrx" select="tokenize(tokenize(@title, ';')[1])[4]"/>
+                <xsl:attribute name="lry" select="tokenize(tokenize(@title, ';')[1])[5]"/>
+              </xsl:element>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:element name="zone">
+                <xsl:attribute name="xml:id">
+                  image_<xsl:value-of select="$without_extension"/>_<xsl:value-of select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
+                </xsl:attribute>
+                <xsl:attribute name="ulx" select="tokenize(@title, ' ')[2]"/>
+                <xsl:attribute name="uly" select="tokenize(@title, ' ')[3]"/>
+                <xsl:attribute name="lrx" select="tokenize(@title, ' ')[4]"/>
+                <xsl:attribute name="lry" select="tokenize(@title, ' ')[5]"/>
+              </xsl:element>
+            </xsl:otherwise>
+          </xsl:choose>  
         </xsl:for-each>
         <xsl:for-each select="//h:p[starts-with(@title, 'bbox')]">
-          <xsl:element name="zone">
-            <xsl:attribute name="xml:id">
-              <xsl:value-of select="$without_extension"/>_<xsl:value-of select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
-            </xsl:attribute>
-            <xsl:attribute name="ulx" select="tokenize(@title, ' ')[2]"/>
-            <xsl:attribute name="uly" select="tokenize(@title, ' ')[3]"/>
-            <xsl:attribute name="lrx" select="tokenize(@title, ' ')[4]"/>
-            <xsl:attribute name="lry" select="tokenize(@title, ' ')[5]"/>
-          </xsl:element>
+          <xsl:choose>
+            <xsl:when test="@title[matches(.,';')]">
+              <xsl:element name="zone">
+                <xsl:attribute name="xml:id">
+                  image_<xsl:value-of select="$without_extension"/>_<xsl:value-of select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
+                </xsl:attribute>
+                <xsl:attribute name="ulx" select="tokenize(tokenize(@title, ';')[1])[2]"/>
+                <xsl:attribute name="uly" select="tokenize(tokenize(@title, ';')[1])[3]"/>
+                <xsl:attribute name="lrx" select="tokenize(tokenize(@title, ';')[1])[4]"/>
+                <xsl:attribute name="lry" select="tokenize(tokenize(@title, ';')[1])[5]"/>
+              </xsl:element>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:element name="zone">
+                <xsl:attribute name="xml:id">
+                  image_<xsl:value-of select="$without_extension"/>_<xsl:value-of select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
+                </xsl:attribute>
+                <xsl:attribute name="ulx" select="tokenize(@title, ' ')[2]"/>
+                <xsl:attribute name="uly" select="tokenize(@title, ' ')[3]"/>
+                <xsl:attribute name="lrx" select="tokenize(@title, ' ')[4]"/>
+                <xsl:attribute name="lry" select="tokenize(@title, ' ')[5]"/>
+              </xsl:element>
+            </xsl:otherwise>
+          </xsl:choose>
         </xsl:for-each>
         <xsl:for-each select="//h:span[starts-with(@title, 'bbox')]">
-          <xsl:element name="zone">
-            <xsl:attribute name="xml:id">
-              <xsl:value-of select="$without_extension"/>_<xsl:value-of select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
-            </xsl:attribute>
-            <xsl:attribute name="ulx" select="tokenize(@title, ' ')[2]"/>
-            <xsl:attribute name="uly" select="tokenize(@title, ' ')[3]"/>
-            <xsl:attribute name="lrx" select="tokenize(@title, ' ')[4]"/>
-            <xsl:attribute name="lry" select="tokenize(@title, ' ')[5]"/>
-          </xsl:element>
+          <xsl:choose>
+            <xsl:when test="@title[matches(.,';')]">
+              <xsl:element name="zone">
+                <xsl:attribute name="xml:id">
+                  image_<xsl:value-of select="$without_extension"/>_<xsl:value-of select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
+                </xsl:attribute>
+                <xsl:attribute name="ulx" select="tokenize(tokenize(@title, ';')[1])[2]"/>
+                <xsl:attribute name="uly" select="tokenize(tokenize(@title, ';')[1])[3]"/>
+                <xsl:attribute name="lrx" select="tokenize(tokenize(@title, ';')[1])[4]"/>
+                <xsl:attribute name="lry" select="tokenize(tokenize(@title, ';')[1])[5]"/>
+              </xsl:element>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:element name="zone">
+                <xsl:attribute name="xml:id">
+                  image_<xsl:value-of select="$without_extension"/>_<xsl:value-of select="concat(@class, '_', count(preceding::h:*[@class = current()/@class]))"/>
+                </xsl:attribute>
+                <xsl:attribute name="ulx" select="tokenize(@title, ' ')[2]"/>
+                <xsl:attribute name="uly" select="tokenize(@title, ' ')[3]"/>
+                <xsl:attribute name="lrx" select="tokenize(@title, ' ')[4]"/>
+                <xsl:attribute name="lry" select="tokenize(@title, ' ')[5]"/>
+              </xsl:element>
+            </xsl:otherwise>
+          </xsl:choose>
         </xsl:for-each>
       </xsl:element>
     </xsl:for-each>
@@ -194,7 +254,7 @@ see alternative https://wiki.tei-c.org/index.php/HOCR2TEI
   <xsl:apply-templates/>
 </xsl:template>
 
-<xsl:template match="h:span[@class = 'ocr_word']">
+<xsl:template match="h:span[@class = 'ocr_word' or @class = 'ocrx_word']">
   <xsl:choose>
     <xsl:when test=". = ('-', '.', ',', ':', ';', '?,', '!', '·', '—')">
       <xsl:element name="pc">
@@ -206,7 +266,7 @@ see alternative https://wiki.tei-c.org/index.php/HOCR2TEI
       <xsl:element name="w">
         <xsl:call-template name="at-facs"/>
         <xsl:apply-templates/>
-      </xsl:element>
+      </xsl:element><xsl:text> </xsl:text>
     </xsl:otherwise>
   </xsl:choose>
 </xsl:template>
