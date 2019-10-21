@@ -33,8 +33,10 @@ colormap = {
 @click.argument('page', type=click.File('rb'))
 @click.option('-o', '--out-dir', type=click.Path(exists=True), default=".", help="Existing directory for storing the extracted image files (default: PWD)")
 @click.option('-l', '--level', type=click.Choice(['line','region','page']), default='line', help="Structural level to perform the image extraction on (default: 'line')")
+@click.option('-i', '--image-format', type=click.Choice(['png','tif']), default='png', help="Output image format (default: 'png')")
+@click.option('-t', '--text', is_flag=True, default=False, help="Also extract full text (if available) and put it into a text file in the output directory.")
 @click.option('-f', '--font', type=click.Path(dir_okay=False), help="Truetype font file for label output")
-def cli(page,out_dir,level,font):
+def cli(page, out_dir, level, image_format, text, font):
     """ PAGE: Input PAGE XML """
 
     #
@@ -106,12 +108,24 @@ def cli(page,out_dir,level,font):
             #
             # generate and save struct image
             pil_image_struct = pil_image.crop((min_x, min_y, max_x, max_y))
-            pil_image_struct.save("%s/%s_%s.png" % (out_dir,os.path.basename(src_img),struct.get("id")), dpi=(300,300))
+            pil_image_struct.save("%s/%s_%s.%s" % (out_dir,os.path.basename(src_img),struct.get("id"),image_format), dpi=(300,300))
+
+        #
+        # extract text if requested by user
+        if text:
+            unic = struct.find("./" + PC + "TextEquiv").find("./" + PC + "Unicode")
+            if unic is not None:
+                if level == 'page':
+                    text_dest = open("%s/%s.txt" % (out_dir,os.path.basename(src_img)), "wa")
+                else:
+                    text_dest = open("%s/%s_%s.txt" % (out_dir,os.path.basename(src_img),struct.get("id")), "w")
+                text_dest.write(unic.text)
+                text_dest.close()
     #
     # delete draw area and save page
     if level == 'page':
         del draw
-        pil_image.save("%s/%s_hl.png" % (out_dir,os.path.basename(src_img)), dpi=(300,300))
+        pil_image.save("%s/%s_hl.%s" % (out_dir,os.path.basename(src_img),image_format), dpi=(300,300))
 
 if __name__ == '__main__':
     cli()
