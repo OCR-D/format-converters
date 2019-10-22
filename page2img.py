@@ -116,7 +116,7 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
         # extract text if requested by user
         if text:
             unic = struct.find("./" + PC + "TextEquiv").find("./" + PC + "Unicode")
-            if unic is not None:
+            if unic is not None and unic.text is not None:
                 if level == 'page':
                     text_dest = open("%s/%s.txt" % (out_dir,os.path.basename(src_img)), "wa")
                 else:
