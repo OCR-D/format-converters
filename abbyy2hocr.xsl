@@ -26,8 +26,6 @@ see alternative https://gist.github.com/tfmorris/5977784
 <xsl:param name="CSS_Stylesheet"></xsl:param>
     
 <xsl:variable name="document-uri" select="document-uri(.)"/>
-
-<xsl:variable name="document-uri" select="document-uri(.)"/>
 <xsl:variable name="filename" select="(tokenize($document-uri,'/'))[last()]"/>
 <xsl:variable name="without_extension" select="tokenize($filename, '\.')[1]"/>
 
@@ -58,19 +56,6 @@ see alternative https://gist.github.com/tfmorris/5977784
       <xsl:if test="normalize-space($ImageFile_Path_and_ImageFile) != ''">
         <xsl:text> image </xsl:text><xsl:text> </xsl:text><xsl:value-of select="$ImageFile_Path_and_ImageFile"/>.<xsl:value-of select="$ImageFile_format"/><xsl:text></xsl:text>
       </xsl:if>
-    </xsl:attribute>
-     <xsl:apply-templates select="ns0:block|ns1:block|ns2:block|ns3:block" />
-  </div>
-</xsl:template>
-
-<xsl:template match="ns0:page|ns1:page|ns2:page|ns3:page">
-  <div class="ocr_page">
-    <xsl:attribute name="title">
-      <xsl:text>bbox 0 0 </xsl:text>
-      <xsl:value-of select="@width"/>
-      <xsl:text> </xsl:text>
-      <xsl:value-of select="@height"/>
-      <xsl:text> image </xsl:text><xsl:text> </xsl:text><xsl:value-of select="$ImageFile_Path_and_ImageFile"/>.<xsl:value-of select="$ImageFile_format"/><xsl:text></xsl:text>
     </xsl:attribute>
     <xsl:apply-templates select="ns0:block|ns1:block|ns2:block|ns3:block" />
   </div>
