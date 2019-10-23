@@ -11,33 +11,35 @@ from urllib.request import urlopen
 from lxml import etree
 from PIL import Image, ImageDraw, ImageFont
 
-ns = {
-     'pc': 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15',
-     'xlink' : "http://www.w3.org/1999/xlink",
-     're' : "http://exslt.org/regular-expressions",
-     }
-PC = "{%s}" % ns['pc']
-XLINK = "{%s}" % ns['xlink']
-
-colormap = {
-        PC + 'NoiseRegion' : [128, 0, 0],
-        PC + 'TextRegion' : [0, 128, 0],
-        PC + 'ImageRegion' : [0, 0, 128],
-        PC + 'GraphicRegion' : [128, 128, 0],
-        PC + 'SeparatorRegion' : [0, 128, 128],
-        PC + 'MathRegion' : [128, 0, 128],
-        PC + 'TableRegion' : [128, 128, 128],
-        }
-
 @click.command()
 @click.argument('page', type=click.File('rb'))
 @click.option('-o', '--out-dir', type=click.Path(exists=True), default=".", help="Existing directory for storing the extracted image files (default: PWD)")
 @click.option('-l', '--level', type=click.Choice(['line','region','page']), default='line', help="Structural level to perform the image extraction on (default: 'line')")
 @click.option('-i', '--image-format', type=click.Choice(['png','tif']), default='png', help="Output image format (default: 'png')")
+@click.option('-p', '--page-version', type=click.Choice(['2013-07-15','2019-07-15']), default='2019-07-15', help="PAGE version (default: '2019-07-15')")
 @click.option('-t', '--text', is_flag=True, default=False, help="Also extract full text (if available) and put it into a text file in the output directory.")
 @click.option('-f', '--font', type=click.Path(dir_okay=False), help="Truetype font file for label output")
-def cli(page, out_dir, level, image_format, text, font):
+
+def cli(page, out_dir, level, image_format, page_version, text, font):
     """ PAGE: Input PAGE XML """
+
+    ns = {
+         'pc': 'http://schema.primaresearch.org/PAGE/gts/pagecontent/' + page_version,
+         'xlink' : "http://www.w3.org/1999/xlink",
+         're' : "http://exslt.org/regular-expressions",
+         }
+    PC = "{%s}" % ns['pc']
+    XLINK = "{%s}" % ns['xlink']
+
+    colormap = {
+            PC + 'NoiseRegion' : [128, 0, 0],
+            PC + 'TextRegion' : [0, 128, 0],
+            PC + 'ImageRegion' : [0, 0, 128],
+            PC + 'GraphicRegion' : [128, 128, 0],
+            PC + 'SeparatorRegion' : [0, 128, 128],
+            PC + 'MathRegion' : [128, 0, 128],
+            PC + 'TableRegion' : [128, 128, 128],
+            }
 
     #
     # read font file
@@ -114,7 +116,7 @@ def cli(page, out_dir, level, image_format, text, font):
         # extract text if requested by user
         if text:
             unic = struct.find("./" + PC + "TextEquiv").find("./" + PC + "Unicode")
-            if unic is not None:
+            if unic is not None and unic.text is not None:
                 if level == 'page':
                     text_dest = open("%s/%s.txt" % (out_dir,os.path.basename(src_img)), "wa")
                 else:
