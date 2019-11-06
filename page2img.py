@@ -83,7 +83,11 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
             draw = ImageDraw.Draw(pil_image, 'RGBA')
     for struct in page_elem.xpath(xpath, namespaces=ns):
 
-        xys = [tuple([int(p) for p in pair.split(',')]) for pair in struct.find("./" + PC + "Coords").get("points").split(' ')]
+        points = struct.find("./" + PC + "Coords").get("points")
+        if not points:
+            continue
+
+        xys = [tuple([int(p) for p in pair.split(',')]) for pair in points.split(' ')]
 
         #
         # draw regions into page
