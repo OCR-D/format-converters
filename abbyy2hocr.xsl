@@ -185,6 +185,11 @@ see alternative https://gist.github.com/tfmorris/5977784
       <xsl:text> </xsl:text>
       <xsl:value-of select="@b"/>
     </xsl:attribute>
+    <xsl:if test="./*:formatting/@lang">
+      <xsl:attribute name="lang">
+        <xsl:value-of select="./*:formatting/@lang"/>
+      </xsl:attribute>
+    </xsl:if>
     <xsl:apply-templates select="ns0:formatting|ns1:formatting|ns2:formatting|ns3:formatting"/>
   </span>
   <xsl:text> </xsl:text>
