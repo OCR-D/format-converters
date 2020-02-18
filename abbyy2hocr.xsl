@@ -18,7 +18,7 @@ see alternative https://gist.github.com/tfmorris/5977784
 <xsl:namespace-alias stylesheet-prefix="ns2" result-prefix=""/>
 <xsl:namespace-alias stylesheet-prefix="ns3" result-prefix=""/>
 <xsl:output method="html" encoding="UTF-8"/>
-<xsl:strip-space elements="*"/>
+
 
 
 <xsl:param name="ImageFile_Path_and_ImageFile"></xsl:param>
@@ -196,65 +196,45 @@ see alternative https://gist.github.com/tfmorris/5977784
   <xsl:choose>
     <xsl:when test="@bold = '1'">
       <b>
-        <xsl:apply-templates select="ns0:charParams|ns1:charParams|ns2:charParams|ns3:charParams"/>
+        <xsl:value-of select="normalize-space(translate(., '&#10;&#13;', ''))"/>
       </b>
     </xsl:when>
     <xsl:when test="@italic = '1'">
       <em>
-        <xsl:apply-templates select="ns0:charParams|ns1:charParams|ns2:charParams|ns3:charParams"/>
+        <xsl:value-of select="normalize-space(translate(., '&#10;&#13;', ''))"/>
       </em>
     </xsl:when>
     <xsl:when test="@smallcaps = '1'">
       <span style="font-variant:small-caps;">
-        <xsl:apply-templates select="ns0:charParams|ns1:charParams|ns2:charParams|ns3:charParams"/>
+        <xsl:value-of select="normalize-space(translate(., '&#10;&#13;', ''))"/>
       </span>
     </xsl:when>
     <xsl:when test="@bold = 'true'">
       <b>
-        <xsl:apply-templates select="ns0:charParams|ns1:charParams|ns2:charParams|ns3:charParams"/>
+        <xsl:value-of select="normalize-space(translate(., '&#10;&#13;', ''))"/>
       </b>
     </xsl:when>
     <xsl:when test="@italic = 'true'">
       <em>
-        <xsl:apply-templates select="ns0:charParams|ns1:charParams|ns2:charParams|ns3:charParams"/>
+        <xsl:value-of select="normalize-space(translate(., '&#10;&#13;', ''))"/>
       </em>
     </xsl:when>
     <xsl:when test="@smallcaps = 'true'">
       <span style="font-variant:small-caps;">
-        <xsl:apply-templates select="ns0:charParams|ns1:charParams|ns2:charParams|ns3:charParams"/>
+        <xsl:value-of select="normalize-space(translate(., '&#10;&#13;', ''))"/>
       </span>
     </xsl:when>
     <xsl:when test="@spacing = '30'">
       <span style="letter-spacing: 0.25em;">
-        <xsl:apply-templates select="ns0:charParams|ns1:charParams|ns2:charParams|ns3:charParams"/>
+        <xsl:value-of select="normalize-space(translate(., '&#10;&#13;', ''))"/>
       </span>
     </xsl:when>
     <xsl:otherwise>
-      <xsl:apply-templates select="ns0:charParams|ns1:charParams|ns2:charParams|ns3:charParams"/>
+      <xsl:value-of select="normalize-space(translate(., '&#10;&#13;', ''))"/>
     </xsl:otherwise>
   </xsl:choose>
 </xsl:template>
 
-<xsl:template match="ns0:charParams|ns1:charParams|ns2:charParams|ns3:charParams">
-  <xsl:choose>
-    <xsl:when test=". = ' '">
-      <xsl:value-of select="."/><xsl:text> </xsl:text>
-    </xsl:when>
-    <xsl:when test="@wordFirst = '1'">
-      <xsl:text> </xsl:text>
-      <xsl:value-of select="."/>
-      <xsl:apply-templates select="ns0:charParams|ns1:charParams|ns2:charParams|ns3:charParams"/>
-    </xsl:when>
-    <xsl:when test="@wordStart = 'true'">
-      <xsl:text> </xsl:text>
-      <xsl:value-of select="."/>
-      <xsl:apply-templates select="ns0:charParams|ns1:charParams|ns2:charParams|ns3:charParams"/>
-    </xsl:when>
-    <xsl:otherwise>
-      <xsl:value-of select="."/>
-    </xsl:otherwise>
-  </xsl:choose>
-</xsl:template>
 
 <!-- Table-->
 
