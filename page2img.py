@@ -4,6 +4,7 @@
 import os
 import sys
 import click
+import math
 import validators
 import re
 
@@ -112,8 +113,36 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
                     max_y = xy[1]
 
             #
-            # generate and save struct image
+            # generate struct image
             pil_image_struct = pil_image.crop((min_x, min_y, max_x, max_y))
+
+            # rotate line image by multiples of 90° if needed
+            baseline = struct.find("./" + PC + "Baseline")
+            if baseline is not None:
+                baseline_points = struct.find("./" + PC + "Baseline").get("points")
+            else:
+                baseline_points = False
+            if not baseline_points:
+                # missing baseline points, assume textline is not rotated
+                pass
+            else:
+                xys = [tuple([int(p) for p in pair.split(',')]) for pair in baseline_points.split(' ')]
+                dx = xys[-1][0] - xys[0][0]
+                dy = xys[-1][1] - xys[0][1]
+                angle = math.atan2(dy, dx) * 180 / math.pi
+                delta = 10
+                if (0 - delta < angle) and (angle < 0 + delta):
+                    pass
+                elif 90 - delta < angle and angle < 90 + delta:
+                    pil_image_struct = pil_image_struct.rotate(90, expand=True)
+                elif -90 - delta < angle and angle < -90 + delta:
+                    pil_image_struct = pil_image_struct.rotate(-90, expand=True)
+                elif 180 - delta < angle and angle < 180 + delta:
+                    pil_image_struct = pil_image_struct.rotate(180, expand=True)
+                elif -180 - delta < angle and angle < -180 + delta:
+                    pil_image_struct = pil_image_struct.rotate(180, expand=True)
+
+            # save struct image
             pil_image_struct.save("%s/%s_%s.%s" % (out_dir,os.path.basename(src_img),struct.get("id"),image_format), dpi=(300,300))
 
         #
