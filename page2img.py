@@ -141,6 +141,8 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
                     pil_image_struct = pil_image_struct.rotate(180, expand=True)
                 elif -180 - delta < angle and angle < -180 + delta:
                     pil_image_struct = pil_image_struct.rotate(180, expand=True)
+                else:
+                    print(f'WARNING: line not rotated by {angle}° in image {outname}')
 
             # save struct image
             pil_image_struct.save("%s/%s_%s.%s" % (out_dir,os.path.basename(src_img),struct.get("id"),image_format), dpi=(300,300))
