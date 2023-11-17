@@ -23,6 +23,14 @@ from PIL import Image, ImageDraw, ImageFont
 def cli(page, out_dir, level, image_format, page_version, text, font):
     """ PAGE: Input PAGE XML """
 
+    xml = etree.parse(page)
+    xml_root = xml.getroot()
+    xmlns = xml_root.attrib.get('{http://www.w3.org/2001/XMLSchema-instance}schemaLocation')
+    if xmlns is not None:
+        xmlns = xmlns.split()
+        if xmlns[0] == 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15':
+            page_version = '2013-07-15'
+
     ns = {
          'pc': 'http://schema.primaresearch.org/PAGE/gts/pagecontent/' + page_version,
          'xlink' : "http://www.w3.org/1999/xlink",
@@ -52,7 +60,7 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
     #
     # read input xml
     #
-    page_elem = etree.parse(page).getroot().find("./" + PC + "Page")
+    page_elem = xml_root.find("./" + PC + "Page")
 
     #
     # get main image
