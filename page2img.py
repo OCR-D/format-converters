@@ -119,14 +119,16 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
         #
         # extract text if requested by user
         if text:
-            unic = struct.find("./" + PC + "TextEquiv").find("./" + PC + "Unicode")
-            if unic is not None and unic.text is not None:
-                if level == 'page':
-                    text_dest = open("%s/%s.txt" % (out_dir,os.path.basename(src_img)), "wa")
-                else:
-                    text_dest = open("%s/%s_%s.txt" % (out_dir,os.path.basename(src_img),struct.get("id")), "w")
-                text_dest.write(unic.text)
-                text_dest.close()
+            text_equiv = struct.find("./" + PC + "TextEquiv")
+            if text_equiv is not None:
+                unic = text_equiv.find("./" + PC + "Unicode")
+                if unic is not None and unic.text is not None:
+                    if level == 'page':
+                        text_dest = open("%s/%s.txt" % (out_dir,os.path.basename(src_img)), "wa")
+                    else:
+                        text_dest = open("%s/%s_%s.txt" % (out_dir,os.path.basename(src_img),struct.get("id")), "w")
+                    text_dest.write(unic.text)
+                    text_dest.close()
     #
     # delete draw area and save page
     if level == 'page':
