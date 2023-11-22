@@ -58,6 +58,8 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
     # get main image
     #
     src_img = page_elem.get("imageFilename")
+    imageWidth = int(page_elem.get("imageWidth"))
+    imageHeight = int(page_elem.get("imageHeight"))
 
     #
     # URL or file?
@@ -69,6 +71,9 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
         click.echo("File %s could not be retrieved! Aborting." % src_img, err=True)
         sys.exit(1)
     pil_image = Image.open(f)
+
+    if pil_image.width != imageWidth or pil_image.height != imageHeight:
+        print(f'WARNING: mismatch of image dimensions, {pil_image.width}x{pil_image.height} (from {src_img}) != {imageWidth}x{imageHeight} (from {page.name})')
 
     #
     # iterate over all structs
