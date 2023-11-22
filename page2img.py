@@ -115,6 +115,7 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
             # generate and save struct image
             pil_image_struct = pil_image.crop((min_x, min_y, max_x, max_y))
             pil_image_struct.save("%s/%s_%s.%s" % (out_dir,os.path.basename(src_img),struct.get("id"),image_format), dpi=(300,300))
+            pil_image_struct.close()
 
         #
         # extract text if requested by user
@@ -132,6 +133,7 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
     if level == 'page':
         del draw
         pil_image.save("%s/%s_hl.%s" % (out_dir,os.path.basename(src_img),image_format), dpi=(300,300))
+    pil_image.close()
 
 if __name__ == '__main__':
     cli()
