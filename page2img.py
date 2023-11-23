@@ -71,10 +71,13 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
 
     #
     # URL or file?
+    dir = os.path.dirname(page.name)
     if validators.url(src_img):
         f = urlopen(src_img)
     elif os.path.exists(src_img):
         f = open(src_img, "rb")
+    elif os.path.exists(f'{dir}/{src_img}'):
+        f = open(f'{dir}/{src_img}', "rb")
     else:
         click.echo("File %s could not be retrieved! Aborting." % src_img, err=True)
         sys.exit(1)
