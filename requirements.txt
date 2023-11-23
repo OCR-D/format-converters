@@ -1,0 +1,4 @@
+click
+lxml
+validators
+Pillow
