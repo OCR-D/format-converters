@@ -137,16 +137,30 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
                 if xy[1] > max_y:
                     max_y = xy[1]
 
+            # Look for a baseline with coordinates outside of box (problem in ONB GT).
+            # If found, increase box to include the baseline.
+            baseline = struct.find("./" + PC + "Baseline")
+            if baseline is None:
+                baseline_points = False
+            else:
+                baseline_points = struct.find("./" + PC + "Baseline").get("points")
+                if baseline_points:
+                    baseline_xys = [tuple([int(p) for p in pair.split(',')]) for pair in baseline_points.split(' ')]
+                    for xy in baseline_xys:
+                        if xy[0] < min_x:
+                            min_x = xy[0]
+                        if xy[0] > max_x:
+                            max_x = xy[0]
+                        if xy[1] < min_y:
+                            min_y = xy[1]
+                        if xy[1] > max_y:
+                            max_y = xy[1]
+
             #
             # generate struct image
             pil_image_struct = pil_image.crop((min_x, min_y, max_x, max_y))
 
             # rotate line image by multiples of 90° if needed
-            baseline = struct.find("./" + PC + "Baseline")
-            if baseline is not None:
-                baseline_points = struct.find("./" + PC + "Baseline").get("points")
-            else:
-                baseline_points = False
             if not baseline_points:
                 # missing baseline points, use orientation of text region
                 angle = -orientation
