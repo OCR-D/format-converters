@@ -184,8 +184,14 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
                 print(f'WARNING: line not rotated by {angle}° in image {outname}')
 
             # save struct image
-            pil_image_struct.save(outname, dpi=(300,300))
-            pil_image_struct.close()
+            try:
+                pil_image_struct.save(outname, dpi=(300,300))
+            except:
+                print(f'ERROR: failed to write {outname}, {pil_image_struct=}')
+                # Don't extract text if image could not be written.
+                continue
+            finally:
+                pil_image_struct.close()
 
         #
         # extract text if requested by user
