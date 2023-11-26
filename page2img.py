@@ -100,9 +100,18 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
             draw = ImageDraw.Draw(pil_image, 'RGBA')
     for struct in page_elem.xpath(xpath, namespaces=ns):
 
+        textregion = struct.getparent()
+        orientation = textregion.get('orientation')
+        if orientation is None:
+            orientation = 0.0
+        else:
+            orientation = float(orientation)
+
         points = struct.find("./" + PC + "Coords").get("points")
         if not points:
             continue
+
+        outname = f'{out_dir}/{os.path.basename(src_img)}_{struct.get("id")}.{image_format}'
 
         xys = [tuple([int(p) for p in pair.split(',')]) for pair in points.split(' ')]
 
@@ -139,29 +148,29 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
             else:
                 baseline_points = False
             if not baseline_points:
-                # missing baseline points, assume textline is not rotated
-                pass
+                # missing baseline points, use orientation of text region
+                angle = -orientation
             else:
                 xys = [tuple([int(p) for p in pair.split(',')]) for pair in baseline_points.split(' ')]
                 dx = xys[-1][0] - xys[0][0]
                 dy = xys[-1][1] - xys[0][1]
                 angle = math.atan2(dy, dx) * 180 / math.pi
-                delta = 10
-                if (0 - delta < angle) and (angle < 0 + delta):
-                    pass
-                elif 90 - delta < angle and angle < 90 + delta:
-                    pil_image_struct = pil_image_struct.rotate(90, expand=True)
-                elif -90 - delta < angle and angle < -90 + delta:
-                    pil_image_struct = pil_image_struct.rotate(-90, expand=True)
-                elif 180 - delta < angle and angle < 180 + delta:
-                    pil_image_struct = pil_image_struct.rotate(180, expand=True)
-                elif -180 - delta < angle and angle < -180 + delta:
-                    pil_image_struct = pil_image_struct.rotate(180, expand=True)
-                else:
-                    print(f'WARNING: line not rotated by {angle}° in image {outname}')
+            delta = 10
+            if (0 - delta < angle) and (angle < 0 + delta):
+                pass
+            elif 90 - delta < angle and angle < 90 + delta:
+                pil_image_struct = pil_image_struct.rotate(90, expand=True)
+            elif -90 - delta < angle and angle < -90 + delta:
+                pil_image_struct = pil_image_struct.rotate(-90, expand=True)
+            elif 180 - delta < angle and angle < 180 + delta:
+                pil_image_struct = pil_image_struct.rotate(180, expand=True)
+            elif -180 - delta < angle and angle < -180 + delta:
+                pil_image_struct = pil_image_struct.rotate(180, expand=True)
+            else:
+                print(f'WARNING: line not rotated by {angle}° in image {outname}')
 
             # save struct image
-            pil_image_struct.save("%s/%s_%s.%s" % (out_dir,os.path.basename(src_img),struct.get("id"),image_format), dpi=(300,300))
+            pil_image_struct.save(outname, dpi=(300,300))
             pil_image_struct.close()
 
         #
