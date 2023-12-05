@@ -20,8 +20,9 @@ from PIL import Image, ImageDraw, ImageFont
 @click.option('-p', '--page-version', type=click.Choice(['2013-07-15','2019-07-15']), default='2019-07-15', help="PAGE version (default: '2019-07-15')")
 @click.option('-t', '--text', is_flag=True, default=False, help="Also extract full text (if available) and put it into a text file in the output directory.")
 @click.option('-f', '--font', type=click.Path(dir_okay=False), help="Truetype font file for label output")
+@click.option('-v', '--verbose', is_flag=True, help='Enable verbose mode')
 
-def cli(page, out_dir, level, image_format, page_version, text, font):
+def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
     """ PAGE: Input PAGE XML """
 
     xml = etree.parse(page)
@@ -100,9 +101,18 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
             draw = ImageDraw.Draw(pil_image, 'RGBA')
     for struct in page_elem.xpath(xpath, namespaces=ns):
 
+        textregion = struct.getparent()
+        orientation = textregion.get('orientation')
+        if orientation is None:
+            orientation = 0.0
+        else:
+            orientation = float(orientation)
+
         points = struct.find("./" + PC + "Coords").get("points")
         if not points:
             continue
+
+        outname = f'{out_dir}/{os.path.basename(src_img)}_{struct.get("id")}.{image_format}'
 
         xys = [tuple([int(p) for p in pair.split(',')]) for pair in points.split(' ')]
 
@@ -128,41 +138,77 @@ def cli(page, out_dir, level, image_format, page_version, text, font):
                 if xy[1] > max_y:
                     max_y = xy[1]
 
+            # Look for a baseline with coordinates outside of box (problem in ONB GT).
+            # If found, increase box to include the baseline.
+            baseline = struct.find("./" + PC + "Baseline")
+            if baseline is None:
+                baseline_points = False
+            else:
+                baseline_points = struct.find("./" + PC + "Baseline").get("points")
+                if baseline_points:
+                    baseline_xys = [tuple([int(p) for p in pair.split(',')]) for pair in baseline_points.split(' ')]
+                    for xy in baseline_xys:
+                        if xy[0] < min_x:
+                            if verbose:
+                                print(f'INFO: baseline changes min_x from {min_x} to {xy[0]} for {outname}')
+                            min_x = xy[0]
+                        if xy[0] > max_x:
+                            if verbose:
+                                print(f'INFO: baseline changes max_x from {max_x} to {xy[0]} for {outname}')
+                            max_x = xy[0]
+                        if xy[1] < min_y:
+                            if verbose:
+                                print(f'INFO: baseline changes min_y from {min_y} to {xy[1]} for {outname}')
+                            min_y = xy[1]
+                        if xy[1] > max_y:
+                            if verbose:
+                                print(f'INFO: baseline changes max_y from {max_y} to {xy[1]} for {outname}')
+                            max_y = xy[1]
+
             #
             # generate struct image
             pil_image_struct = pil_image.crop((min_x, min_y, max_x, max_y))
 
             # rotate line image by multiples of 90° if needed
-            baseline = struct.find("./" + PC + "Baseline")
-            if baseline is not None:
-                baseline_points = struct.find("./" + PC + "Baseline").get("points")
-            else:
-                baseline_points = False
             if not baseline_points:
-                # missing baseline points, assume textline is not rotated
-                pass
+                # missing baseline points, use orientation of text region
+                angle = -orientation
             else:
                 xys = [tuple([int(p) for p in pair.split(',')]) for pair in baseline_points.split(' ')]
                 dx = xys[-1][0] - xys[0][0]
                 dy = xys[-1][1] - xys[0][1]
                 angle = math.atan2(dy, dx) * 180 / math.pi
-                delta = 10
-                if (0 - delta < angle) and (angle < 0 + delta):
-                    pass
-                elif 90 - delta < angle and angle < 90 + delta:
-                    pil_image_struct = pil_image_struct.rotate(90, expand=True)
-                elif -90 - delta < angle and angle < -90 + delta:
-                    pil_image_struct = pil_image_struct.rotate(-90, expand=True)
-                elif 180 - delta < angle and angle < 180 + delta:
-                    pil_image_struct = pil_image_struct.rotate(180, expand=True)
-                elif -180 - delta < angle and angle < -180 + delta:
-                    pil_image_struct = pil_image_struct.rotate(180, expand=True)
-                else:
-                    print(f'WARNING: line not rotated by {angle}° in image {outname}')
+            delta = 10
+            if (0 - delta < angle) and (angle < 0 + delta):
+                pass
+            elif 90 - delta < angle and angle < 90 + delta:
+                pil_image_struct = pil_image_struct.rotate(90, expand=True)
+                if verbose:
+                    print(f'INFO: line rotated by 90° in image {outname}')
+            elif -90 - delta < angle and angle < -90 + delta:
+                pil_image_struct = pil_image_struct.rotate(-90, expand=True)
+                if verbose:
+                    print(f'INFO: line rotated by -90° in image {outname}')
+            elif 180 - delta < angle and angle < 180 + delta:
+                pil_image_struct = pil_image_struct.rotate(180, expand=True)
+                if verbose:
+                    print(f'INFO: line rotated by 180° in image {outname}')
+            elif -180 - delta < angle and angle < -180 + delta:
+                pil_image_struct = pil_image_struct.rotate(180, expand=True)
+                if verbose:
+                    print(f'INFO: line rotated by -180° in image {outname}')
+            else:
+                print(f'WARNING: line not rotated by {angle}° in image {outname}')
 
             # save struct image
-            pil_image_struct.save("%s/%s_%s.%s" % (out_dir,os.path.basename(src_img),struct.get("id"),image_format), dpi=(300,300))
-            pil_image_struct.close()
+            try:
+                pil_image_struct.save(outname, dpi=(300,300))
+            except:
+                print(f'ERROR: failed to write {outname}, {pil_image_struct=}')
+                # Don't extract text if image could not be written.
+                continue
+            finally:
+                pil_image_struct.close()
 
         #
         # extract text if requested by user
