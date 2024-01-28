@@ -1,62 +1,71 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os
-import sys
-import click
 import math
-import validators
+import os
 import re
-
+import sys
 from urllib.request import urlopen
+
+import click
+import validators
 from lxml import etree
 from PIL import Image, ImageDraw, ImageFont
 
+
 @click.command()
 @click.argument('page', type=click.File('rb'))
-@click.option('-o', '--out-dir', type=click.Path(exists=True), default=".", help="Existing directory for storing the extracted image files (default: PWD)")
-@click.option('-l', '--level', type=click.Choice(['line','region','page']), default='line', help="Structural level to perform the image extraction on (default: 'line')")
-@click.option('-i', '--image-format', type=click.Choice(['png','tif']), default='png', help="Output image format (default: 'png')")
-@click.option('-p', '--page-version', type=click.Choice(['2013-07-15','2019-07-15']), default='2019-07-15', help="PAGE version (default: '2019-07-15')")
-@click.option('-t', '--text', is_flag=True, default=False, help="Also extract full text (if available) and put it into a text file in the output directory.")
-@click.option('-f', '--font', type=click.Path(dir_okay=False), help="Truetype font file for label output")
+@click.option('-o', '--out-dir', type=click.Path(exists=True), default=".",
+              help="Existing directory for storing the extracted image files (default: PWD)")
+@click.option('-l', '--level', type=click.Choice(['line', 'region', 'page']), default='line',
+              help="Structural level to perform the image extraction on (default: 'line')")
+@click.option('-i', '--image-format', type=click.Choice(
+    ['png', 'tif']), default='png', help="Output image format (default: 'png')")
+@click.option('-p', '--page-version',
+              type=click.Choice(['2013-07-15', '2019-07-15']),
+              default='2019-07-15',
+              help="PAGE version (default: '2019-07-15')")
+@click.option('-t', '--text', is_flag=True, default=False,
+              help=("Also extract full text (if available) and "
+                    "put it into a text file in the output directory."))
+@click.option('-f', '--font', type=click.Path(dir_okay=False),
+              help="Truetype font file for label output")
 @click.option('-v', '--verbose', is_flag=True, help='Enable verbose mode')
-
 def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
     """ PAGE: Input PAGE XML """
 
     xml = etree.parse(page)
     xml_root = xml.getroot()
-    xmlns = xml_root.attrib.get('{http://www.w3.org/2001/XMLSchema-instance}schemaLocation')
+    xmlns = xml_root.attrib.get(
+        '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation')
     if xmlns is not None:
         xmlns = xmlns.split()
         if xmlns[0] == 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15':
             page_version = '2013-07-15'
 
     ns = {
-         'pc': 'http://schema.primaresearch.org/PAGE/gts/pagecontent/' + page_version,
-         'xlink' : "http://www.w3.org/1999/xlink",
-         're' : "http://exslt.org/regular-expressions",
-         }
+        'pc': 'http://schema.primaresearch.org/PAGE/gts/pagecontent/' + page_version,
+        'xlink': "http://www.w3.org/1999/xlink",
+        're': "http://exslt.org/regular-expressions",
+    }
     PC = "{%s}" % ns['pc']
-    XLINK = "{%s}" % ns['xlink']
 
     colormap = {
-            PC + 'NoiseRegion' : [128, 0, 0],
-            PC + 'TextRegion' : [0, 128, 0],
-            PC + 'ImageRegion' : [0, 0, 128],
-            PC + 'GraphicRegion' : [128, 128, 0],
-            PC + 'SeparatorRegion' : [0, 128, 128],
-            PC + 'MathRegion' : [128, 0, 128],
-            PC + 'TableRegion' : [128, 128, 128],
-            }
+        PC + 'NoiseRegion': [128, 0, 0],
+        PC + 'TextRegion': [0, 128, 0],
+        PC + 'ImageRegion': [0, 0, 128],
+        PC + 'GraphicRegion': [128, 128, 0],
+        PC + 'SeparatorRegion': [0, 128, 128],
+        PC + 'MathRegion': [128, 0, 128],
+        PC + 'TableRegion': [128, 128, 128],
+    }
 
     #
     # read font file
     #
     try:
         font = ImageFont.truetype(font, size=24)
-    except:
+    except BaseException:
         font = ImageFont.load_default()
 
     #
@@ -81,12 +90,17 @@ def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
     elif os.path.exists(f'{dir}/{src_img}'):
         f = open(f'{dir}/{src_img}', "rb")
     else:
-        click.echo("File %s could not be retrieved! Aborting." % src_img, err=True)
+        click.echo("File %s could not be retrieved! Aborting." %
+                   src_img, err=True)
         sys.exit(1)
     pil_image = Image.open(f)
 
     if pil_image.width != imageWidth or pil_image.height != imageHeight:
-        print(f'WARNING: mismatch of image dimensions, {pil_image.width}x{pil_image.height} (from {src_img}) != {imageWidth}x{imageHeight} (from {page.name})')
+        print(
+            f('WARNING: mismatch of image dimensions, '
+              '{pil_image.width}x{pil_image.height} '
+              '(from {src_img}) != {imageWidth}x{imageHeight} '
+              '(from {page.name})'))
 
     #
     # iterate over all structs
@@ -114,13 +128,21 @@ def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
 
         outname = f'{out_dir}/{os.path.basename(src_img)}_{struct.get("id")}.{image_format}'
 
-        xys = [tuple([int(p) for p in pair.split(',')]) for pair in points.split(' ')]
+        xys = [tuple([int(p) for p in pair.split(',')])
+               for pair in points.split(' ')]
 
         #
         # draw regions into page
         if level == 'page':
-            draw.polygon(xys, (colormap[struct.tag][0], colormap[struct.tag][1], colormap[struct.tag][2], 50), outline='black')
-            draw.text(xys[0], "%s-%s-%s" % (re.sub("{[^}]*}", "", struct.tag), struct.get("type", default="None"), struct.get("custom", default="None")), (colormap[struct.tag][0], colormap[struct.tag][1], colormap[struct.tag][2], 255), font=font)
+            draw.polygon(xys, (colormap[struct.tag][0], colormap[struct.tag]
+                         [1], colormap[struct.tag][2], 50), outline='black')
+            draw.text(xys[0],
+                      "%s-%s-%s" % (re.sub("{[^}]*}", "", struct.tag),
+                                    struct.get("type", default="None"),
+                                    struct.get("custom", default="None")),
+                      (colormap[struct.tag][0],
+                       colormap[struct.tag][1],
+                       colormap[struct.tag][2], 255), font=font)
         #
         # generate PIL crop schema from struct points
         else:
@@ -144,25 +166,31 @@ def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
             if baseline is None:
                 baseline_points = False
             else:
-                baseline_points = struct.find("./" + PC + "Baseline").get("points")
+                baseline_points = struct.find(
+                    "./" + PC + "Baseline").get("points")
                 if baseline_points:
-                    baseline_xys = [tuple([int(p) for p in pair.split(',')]) for pair in baseline_points.split(' ')]
+                    baseline_xys = [tuple([int(p) for p in pair.split(',')])
+                                    for pair in baseline_points.split(' ')]
                     for xy in baseline_xys:
                         if xy[0] < min_x:
                             if verbose:
-                                print(f'INFO: baseline changes min_x from {min_x} to {xy[0]} for {outname}')
+                                print(
+                                    f'INFO: baseline changes min_x from {min_x} to {xy[0]} for {outname}')
                             min_x = xy[0]
                         if xy[0] > max_x:
                             if verbose:
-                                print(f'INFO: baseline changes max_x from {max_x} to {xy[0]} for {outname}')
+                                print(
+                                    f'INFO: baseline changes max_x from {max_x} to {xy[0]} for {outname}')
                             max_x = xy[0]
                         if xy[1] < min_y:
                             if verbose:
-                                print(f'INFO: baseline changes min_y from {min_y} to {xy[1]} for {outname}')
+                                print(
+                                    f'INFO: baseline changes min_y from {min_y} to {xy[1]} for {outname}')
                             min_y = xy[1]
                         if xy[1] > max_y:
                             if verbose:
-                                print(f'INFO: baseline changes max_y from {max_y} to {xy[1]} for {outname}')
+                                print(
+                                    f'INFO: baseline changes max_y from {max_y} to {xy[1]} for {outname}')
                             max_y = xy[1]
 
             #
@@ -174,7 +202,8 @@ def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
                 # missing baseline points, use orientation of text region
                 angle = -orientation
             else:
-                xys = [tuple([int(p) for p in pair.split(',')]) for pair in baseline_points.split(' ')]
+                xys = [tuple([int(p) for p in pair.split(',')])
+                       for pair in baseline_points.split(' ')]
                 dx = xys[-1][0] - xys[0][0]
                 dy = xys[-1][1] - xys[0][1]
                 angle = math.atan2(dy, dx) * 180 / math.pi
@@ -198,12 +227,13 @@ def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
                 if verbose:
                     print(f'INFO: line rotated by -180° in image {outname}')
             else:
-                print(f'WARNING: line not rotated by {angle}° in image {outname}')
+                print(
+                    f'WARNING: line not rotated by {angle}° in image {outname}')
 
             # save struct image
             try:
-                pil_image_struct.save(outname, dpi=(300,300))
-            except:
+                pil_image_struct.save(outname, dpi=(300, 300))
+            except BaseException:
                 print(f'ERROR: failed to write {outname}, {pil_image_struct=}')
                 # Don't extract text if image could not be written.
                 continue
@@ -218,17 +248,21 @@ def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
                 unic = text_equiv.find("./" + PC + "Unicode")
                 if unic is not None and unic.text is not None:
                     if level == 'page':
-                        text_dest = open("%s/%s.txt" % (out_dir,os.path.basename(src_img)), "wa")
+                        text_dest = open(
+                            "%s/%s.txt" % (out_dir, os.path.basename(src_img)), "wa")
                     else:
-                        text_dest = open("%s/%s_%s.txt" % (out_dir,os.path.basename(src_img),struct.get("id")), "w")
+                        text_dest = open(
+                            "%s/%s_%s.txt" % (out_dir, os.path.basename(src_img), struct.get("id")), "w")
                     text_dest.write(unic.text)
                     text_dest.close()
     #
     # delete draw area and save page
     if level == 'page':
         del draw
-        pil_image.save("%s/%s_hl.%s" % (out_dir,os.path.basename(src_img),image_format), dpi=(300,300))
+        pil_image.save("%s/%s_hl.%s" % (out_dir,
+                       os.path.basename(src_img), image_format), dpi=(300, 300))
     pil_image.close()
+
 
 if __name__ == '__main__':
     cli()
