@@ -46,7 +46,6 @@ def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
         're': "http://exslt.org/regular-expressions",
     }
     PC = "{%s}" % ns['pc']
-    XLINK = "{%s}" % ns['xlink']
 
     colormap = {
         PC + 'NoiseRegion': [128, 0, 0],
