@@ -21,10 +21,13 @@ from PIL import Image, ImageDraw, ImageFont
               help="Structural level to perform the image extraction on (default: 'line')")
 @click.option('-i', '--image-format', type=click.Choice(
     ['png', 'tif']), default='png', help="Output image format (default: 'png')")
-@click.option('-p', '--page-version', type=click.Choice(
-    ['2013-07-15', '2019-07-15']), default='2019-07-15', help="PAGE version (default: '2019-07-15')")
+@click.option('-p', '--page-version',
+              type=click.Choice(['2013-07-15', '2019-07-15']),
+              default='2019-07-15',
+              help="PAGE version (default: '2019-07-15')")
 @click.option('-t', '--text', is_flag=True, default=False,
-              help="Also extract full text (if available) and put it into a text file in the output directory.")
+              help=("Also extract full text (if available) and "
+                    "put it into a text file in the output directory."))
 @click.option('-f', '--font', type=click.Path(dir_okay=False),
               help="Truetype font file for label output")
 @click.option('-v', '--verbose', is_flag=True, help='Enable verbose mode')
@@ -94,7 +97,10 @@ def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
 
     if pil_image.width != imageWidth or pil_image.height != imageHeight:
         print(
-            f'WARNING: mismatch of image dimensions, {pil_image.width}x{pil_image.height} (from {src_img}) != {imageWidth}x{imageHeight} (from {page.name})')
+            f('WARNING: mismatch of image dimensions, '
+              '{pil_image.width}x{pil_image.height} '
+              '(from {src_img}) != {imageWidth}x{imageHeight} '
+              '(from {page.name})'))
 
     #
     # iterate over all structs
@@ -130,8 +136,13 @@ def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
         if level == 'page':
             draw.polygon(xys, (colormap[struct.tag][0], colormap[struct.tag]
                          [1], colormap[struct.tag][2], 50), outline='black')
-            draw.text(xys[0], "%s-%s-%s" % (re.sub("{[^}]*}", "", struct.tag), struct.get("type", default="None"), struct.get(
-                "custom", default="None")), (colormap[struct.tag][0], colormap[struct.tag][1], colormap[struct.tag][2], 255), font=font)
+            draw.text(xys[0],
+                      "%s-%s-%s" % (re.sub("{[^}]*}", "", struct.tag),
+                                    struct.get("type", default="None"),
+                                    struct.get("custom", default="None")),
+                      (colormap[struct.tag][0],
+                       colormap[struct.tag][1],
+                       colormap[struct.tag][2], 255), font=font)
         #
         # generate PIL crop schema from struct points
         else:
