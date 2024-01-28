@@ -15,12 +15,18 @@ from PIL import Image, ImageDraw, ImageFont
 
 @click.command()
 @click.argument('page', type=click.File('rb'))
-@click.option('-o', '--out-dir', type=click.Path(exists=True), default=".", help="Existing directory for storing the extracted image files (default: PWD)")
-@click.option('-l', '--level', type=click.Choice(['line', 'region', 'page']), default='line', help="Structural level to perform the image extraction on (default: 'line')")
-@click.option('-i', '--image-format', type=click.Choice(['png', 'tif']), default='png', help="Output image format (default: 'png')")
-@click.option('-p', '--page-version', type=click.Choice(['2013-07-15', '2019-07-15']), default='2019-07-15', help="PAGE version (default: '2019-07-15')")
-@click.option('-t', '--text', is_flag=True, default=False, help="Also extract full text (if available) and put it into a text file in the output directory.")
-@click.option('-f', '--font', type=click.Path(dir_okay=False), help="Truetype font file for label output")
+@click.option('-o', '--out-dir', type=click.Path(exists=True), default=".",
+              help="Existing directory for storing the extracted image files (default: PWD)")
+@click.option('-l', '--level', type=click.Choice(['line', 'region', 'page']), default='line',
+              help="Structural level to perform the image extraction on (default: 'line')")
+@click.option('-i', '--image-format', type=click.Choice(
+    ['png', 'tif']), default='png', help="Output image format (default: 'png')")
+@click.option('-p', '--page-version', type=click.Choice(
+    ['2013-07-15', '2019-07-15']), default='2019-07-15', help="PAGE version (default: '2019-07-15')")
+@click.option('-t', '--text', is_flag=True, default=False,
+              help="Also extract full text (if available) and put it into a text file in the output directory.")
+@click.option('-f', '--font', type=click.Path(dir_okay=False),
+              help="Truetype font file for label output")
 @click.option('-v', '--verbose', is_flag=True, help='Enable verbose mode')
 def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
     """ PAGE: Input PAGE XML """
@@ -57,7 +63,7 @@ def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
     #
     try:
         font = ImageFont.truetype(font, size=24)
-    except:
+    except BaseException:
         font = ImageFont.load_default()
 
     #
@@ -217,7 +223,7 @@ def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
             # save struct image
             try:
                 pil_image_struct.save(outname, dpi=(300, 300))
-            except:
+            except BaseException:
                 print(f'ERROR: failed to write {outname}, {pil_image_struct=}')
                 # Don't extract text if image could not be written.
                 continue
