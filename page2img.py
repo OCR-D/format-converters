@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os
-import sys
-import click
 import math
-import validators
+import os
 import re
-
+import sys
 from urllib.request import urlopen
+
+import click
+import validators
 from lxml import etree
 from PIL import Image, ImageDraw, ImageFont
+
 
 @click.command()
 @click.argument('page', type=click.File('rb'))
