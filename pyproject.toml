@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+
+[project]
+name = "ocrd-format-converters"
+version = "0.1.0"
+authors = [
+    {name = "Frank Wiegand", email = "frank.wiegand@gmail.com"},
+    {name = "Matthias Boenig", email = "matthiasboenig@gmx.net"},
+    {name = "Marius Hug", email = "marius.hug@googlemail.com"},
+    {name = "Kay-Michael Wuerzner", email = "wuerzner@gmail.com"},
+]
+description = "Converters for various file formats used for representing OCR"
+license.file = "LICENSE"
+requires-python = ">=3.8"
+dynamic = ["dependencies"]
+
+[project.scripts]
+page2img = "page2img:cli"
+
+[project.urls]
+Homepage = "https://github.com/OCR-D/format-converters"
+Repository = "https://github.com/OCR-D/format-converters.git"
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools]
+py-modules = ["page2img"]
+#package-data = {"*" = ["*.xsl"]}
