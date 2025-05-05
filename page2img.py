@@ -206,7 +206,14 @@ def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
                        for pair in baseline_points.split(' ')]
                 dx = xys[-1][0] - xys[0][0]
                 dy = xys[-1][1] - xys[0][1]
-                angle = math.atan2(dy, dx) * 180 / math.pi
+                if dx * dx + dy * dy < 16:
+                    # A baseline with length < 4 is typically wrong and
+                    # cannot be used for the angle calculation.
+                    if verbose:
+                        print(f'INFO: short baseline in image {outname}')
+                    angle = 0
+                else:
+                    angle = math.atan2(dy, dx) * 180 / math.pi
             delta = 10
             if (0 - delta < angle) and (angle < 0 + delta):
                 pass
