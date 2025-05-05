@@ -255,6 +255,8 @@ def cli(page, out_dir, level, image_format, page_version, text, font, verbose):
                             "%s/%s_%s.txt" % (out_dir, os.path.basename(src_img), struct.get("id")), "w")
                     text_dest.write(unic.text)
                     text_dest.close()
+            else:
+                print(f'WARNING: no text found for {outname}')
     #
     # delete draw area and save page
     if level == 'page':
